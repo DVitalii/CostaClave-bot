@@ -15,15 +15,15 @@ ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID")
 WAITING_NAME, WAITING_PHONE, WAITING_ADDRESS, WAITING_PROBLEM = range(4)
 
 def detect_lang(update):
-lang = update.effective_user.language_code or "es"
-if lang.startswith("ru"):
-return "ru"
-elif lang.startswith("en"):
-return "en"
-elif lang.startswith("fr"):
-return "fr"
-else:
-return "es"
+    lang = update.effective_user.language_code or "es"
+    if lang.startswith("ru"):
+        return "ru"
+    elif lang.startswith("en"):
+        return "en"
+    elif lang.startswith("fr"):
+        return "fr"
+    else:
+        return "es"
 
 TEXTS = {
 "welcome": {
