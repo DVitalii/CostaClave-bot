@@ -216,5 +216,5 @@ logger.info("CostaClave bot zapushchen!")
 app.run_polling()
 ```
 
-if **name** == “**main**”:
+if **name** == "**main**":
 main()
