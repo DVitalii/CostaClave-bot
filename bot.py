@@ -2,19 +2,22 @@ import os
 import logging
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import (
-Application, CommandHandler, MessageHandler,
-filters, ContextTypes, ConversationHandler
+    Application, CommandHandler, MessageHandler,
+    filters, ContextTypes, ConversationHandler
 )
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("costaclave")
+logger = logging.getLogger(__name__)
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID")
+# === НАСТРОЙКИ ===
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "ВСТАВЬ_СВОЙ_ТОКЕН_ЗДЕСЬ")
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "ВСТАВЬ_СВОЙ_CHAT_ID")
 
+# === СОСТОЯНИЯ ДИАЛОГА ===
 WAITING_NAME, WAITING_PHONE, WAITING_ADDRESS, WAITING_PROBLEM = range(4)
 
-def detect_lang(update):
+# === ОПРЕДЕЛЕНИЕ ЯЗЫКА ===
+def detect_lang(update: Update) -> str:
     lang = update.effective_user.language_code or "es"
     if lang.startswith("ru"):
         return "ru"
@@ -25,196 +28,209 @@ def detect_lang(update):
     else:
         return "es"
 
+# === ТЕКСТЫ НА РАЗНЫХ ЯЗЫКАХ ===
 TEXTS = {
-"welcome": {
-"ru": "Dobro pozhalovat v CostaClave!\n\nMy - sluzhba srochnogo vskrytiya zamkov na Kosta-Blanka. Rabotaem 24/7.\n\nChto vas interesuet?",
-"es": "Bienvenido a CostaClave!\n\nSomos el servicio de cerrajeria urgente en la Costa Blanca. Trabajamos 24/7.\n\nEn que podemos ayudarle?",
-"en": "Welcome to CostaClave!\n\nWe are the emergency locksmith service on the Costa Blanca. Available 24/7.\n\nHow can we help you?",
-"fr": "Bienvenue chez CostaClave!\n\nNous sommes le service de serrurerie d urgence sur la Costa Blanca. Disponible 24h/24.\n\nComment puis-je vous aider?",
-},
-"menu": {
-"ru": ["Vyzvat mastera", "Tseny", "Zona raboty", "Vremya raboty", "Kontakty"],
-"es": ["Pedir servicio", "Precios", "Zona de trabajo", "Horario", "Contacto"],
-"en": ["Book a locksmith", "Prices", "Service area", "Working hours", "Contact"],
-"fr": ["Appeler un serrurier", "Prix", "Zone intervention", "Horaires", "Contact"],
-},
-"prices": {
-"ru": "Nashi tseny:\n\nOtkrytie zamka - ot 60 evro\nVskrytie avto - ot 80 evro\nZamena zamka - ot 90 evro\nNochnoy vyzov - +20 evro",
-"es": "Nuestros precios:\n\nApertura de cerradura - desde 60 euros\nApertura de coche - desde 80 euros\nCambio de cerradura - desde 90 euros\nServicio nocturno - +20 euros",
-"en": "Our prices:\n\nLock opening - from 60 euro\nCar opening - from 80 euro\nLock replacement - from 90 euro\nNight call - +20 euro",
-"fr": "Nos tarifs:\n\nOuverture de serrure - a partir de 60 euros\nOuverture de voiture - a partir de 80 euros\nRemplacement - a partir de 90 euros\nAppel nocturne - +20 euros",
-},
-"area": {
-"ru": "Zona obsluzhivaniya:\n\nDeniya, Khavea, Morayra, Benissa, Kalpe, Altea, Benidorm, Gandiya\n\nVes rayon Kosta-Blanka Norte.",
-"es": "Zona de trabajo:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nToda la Costa Blanca Norte.",
-"en": "Service area:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nAll Costa Blanca Norte.",
-"fr": "Zone intervention:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nToute la Costa Blanca Norte.",
-},
-"hours": {
-"ru": "Vremya raboty:\n\n24 chasa v sutki\n7 dney v nedelyu\n365 dney v godu\n\nDazhe v prazdniki i nochyu!",
-"es": "Horario:\n\n24 horas al dia\n7 dias a la semana\n365 dias al ano\n\nIncluso en festivos y de noche!",
-"en": "Working hours:\n\n24 hours a day\n7 days a week\n365 days a year\n\nEven on holidays and at night!",
-"fr": "Horaires:\n\n24h/24\n7j/7\n365 jours par an\n\nMeme les jours feries et la nuit!",
-},
-"contact": {
-"ru": "Kontakty CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
-"es": "Contacto CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
-"en": "CostaClave contacts:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
-"fr": "Contact CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
-},
-"ask_name": {
-"ru": "Davajte oformim zayavku. Kak vas zovut?",
-"es": "Vamos a registrar su solicitud. Como se llama?",
-"en": "Let us register your request. What is your name?",
-"fr": "Enregistrons votre demande. Comment vous appelez-vous?",
-},
-"ask_phone": {
-"ru": "Ukazhite vash nomer telefona:",
-"es": "Indique su numero de telefono:",
-"en": "Please share your phone number:",
-"fr": "Indiquez votre numero de telephone:",
-},
-"ask_address": {
-"ru": "Ukazhite adres ili naselyonnyy punkt:",
-"es": "Indique su direccion o localidad:",
-"en": "Please provide your address or location:",
-"fr": "Indiquez votre adresse ou localite:",
-},
-"ask_problem": {
-"ru": "Opishite problemu (naprimer: zakrylsya v kvartire, ne otkryvaetsya zamok):",
-"es": "Describa el problema (por ejemplo: se quedo fuera, la cerradura no abre):",
-"en": "Describe the problem (e.g.: locked out, lock won’t open):",
-"fr": "Decrivez le probleme (par ex: porte claquee, serrure bloquee):",
-},
-"done": {
-"ru": "Zayavka prinyata! Master svyazhetsya s vami v blizhaishie minuty. Spasibo za vybor CostaClave!",
-"es": "Solicitud recibida! El tecnico le contactara en pocos minutos. Gracias por elegir CostaClave!",
-"en": "Request received! Our locksmith will contact you within minutes. Thank you for choosing CostaClave!",
-"fr": "Demande recue! Notre serrurier vous contactera dans quelques minutes. Merci d avoir choisi CostaClave!",
-},
-"cancel": {
-"ru": "Zayavka otmenena. Esli ponadobitsya - nazhmite /start",
-"es": "Solicitud cancelada. Si necesita ayuda pulse /start",
-"en": "Request cancelled. If you need help press /start",
-"fr": "Demande annule. Si vous avez besoin d aide appuyez sur /start",          
-},
+    "welcome": {
+        "ru": "🔐 Добро пожаловать в CostaClave!\n\nМы — служба срочного вскрытия замков на Коста-Бланка. Работаем 24/7.\n\nЧто вас интересует?",
+        "es": "🔐 ¡Bienvenido a CostaClave!\n\nSomos el servicio de cerrajería urgente en la Costa Blanca. Trabajamos 24/7.\n\n¿En qué podemos ayudarle?",
+        "en": "🔐 Welcome to CostaClave!\n\nWe are the emergency locksmith service on the Costa Blanca. Available 24/7.\n\nHow can we help you?",
+        "fr": "🔐 Bienvenue chez CostaClave!\n\nNous sommes le service de serrurerie d'urgence sur la Costa Blanca. Disponible 24h/24.\n\nComment puis-je vous aider?",
+    },
+    "menu": {
+        "ru": ["📋 Вызвать мастера", "💰 Цены", "📍 Зона работы", "⏰ Время работы", "📞 Контакты"],
+        "es": ["📋 Pedir servicio", "💰 Precios", "📍 Zona de trabajo", "⏰ Horario", "📞 Contacto"],
+        "en": ["📋 Book a locksmith", "💰 Prices", "📍 Service area", "⏰ Working hours", "📞 Contact"],
+        "fr": ["📋 Appeler un serrurier", "💰 Prix", "📍 Zone d'intervention", "⏰ Horaires", "📞 Contact"],
+    },
+    "prices": {
+        "ru": "💰 *Наши цены:*\n\n🔓 Открытие замка — от 60€\n🚗 Вскрытие авто — от 80€\n🔧 Замена замка — от 90€\n🚨 Ночной вызов (+22:00) — +20€\n\n_Точная стоимость после осмотра. Без скрытых доплат._",
+        "es": "💰 *Nuestros precios:*\n\n🔓 Apertura de cerradura — desde 60€\n🚗 Apertura de coche — desde 80€\n🔧 Cambio de cerradura — desde 90€\n🚨 Servicio nocturno (+22:00) — +20€\n\n_Precio exacto tras inspección. Sin cargos ocultos._",
+        "en": "💰 *Our prices:*\n\n🔓 Lock opening — from 60€\n🚗 Car opening — from 80€\n🔧 Lock replacement — from 90€\n🚨 Night call (+22:00) — +20€\n\n_Exact price after inspection. No hidden charges._",
+        "fr": "💰 *Nos tarifs:*\n\n🔓 Ouverture de serrure — à partir de 60€\n🚗 Ouverture de voiture — à partir de 80€\n🔧 Remplacement de serrure — à partir de 90€\n🚨 Appel nocturne (+22:00) — +20€\n\n_Prix exact après inspection. Sans frais cachés._",
+    },
+    "area": {
+        "ru": "📍 *Зона обслуживания:*\n\nДения, Хавеа, Морайра, Бенисса, Калпе, Альтеа, Бенидорм, Гандия\n\nВесь район Коста-Бланка Норте. Если сомневаетесь — спросите!",
+        "es": "📍 *Zona de trabajo:*\n\nDénia, Jávea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandía\n\nToda la Costa Blanca Norte. ¡Si tiene dudas, pregúntenos!",
+        "en": "📍 *Service area:*\n\nDénia, Jávea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandía\n\nAll Costa Blanca Norte. If in doubt — just ask!",
+        "fr": "📍 *Zone d'intervention:*\n\nDénia, Jávea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandía\n\nToute la Costa Blanca Norte. En cas de doute, demandez!",
+    },
+    "hours": {
+        "ru": "⏰ *Время работы:*\n\n✅ 24 часа в сутки\n✅ 7 дней в неделю\n✅ 365 дней в году\n\nДаже в праздники и ночью — мы на связи!",
+        "es": "⏰ *Horario:*\n\n✅ 24 horas al día\n✅ 7 días a la semana\n✅ 365 días al año\n\n¡Incluso en festivos y de noche — estamos disponibles!",
+        "en": "⏰ *Working hours:*\n\n✅ 24 hours a day\n✅ 7 days a week\n✅ 365 days a year\n\nEven on holidays and at night — we're here!",
+        "fr": "⏰ *Horaires:*\n\n✅ 24h/24\n✅ 7j/7\n✅ 365 jours par an\n\nMême les jours fériés et la nuit — nous sommes disponibles!",
+    },
+    "contact": {
+        "ru": "📞 *Контакты CostaClave:*\n\n📱 WhatsApp/Telegram: +34 XXX XXX XXX\n🌐 costaclave.net\n📧 info@costaclave.net\n\nИли нажмите «Вызвать мастера» и мы перезвоним вам!",
+        "es": "📞 *Contacto CostaClave:*\n\n📱 WhatsApp/Telegram: +34 XXX XXX XXX\n🌐 costaclave.net\n📧 info@costaclave.net\n\n¡O pulse «Pedir servicio» y le llamaremos!",
+        "en": "📞 *CostaClave contacts:*\n\n📱 WhatsApp/Telegram: +34 XXX XXX XXX\n🌐 costaclave.net\n📧 info@costaclave.net\n\nOr press «Book a locksmith» and we'll call you back!",
+        "fr": "📞 *Contact CostaClave:*\n\n📱 WhatsApp/Telegram: +34 XXX XXX XXX\n🌐 costaclave.net\n📧 info@costaclave.net\n\nOu appuyez sur «Appeler un serrurier» et nous vous rappellerons!",
+    },
+    "ask_name": {
+        "ru": "📋 Отлично! Давайте оформим заявку.\n\nКак вас зовут?",
+        "es": "📋 ¡Perfecto! Vamos a registrar su solicitud.\n\n¿Cómo se llama?",
+        "en": "📋 Great! Let's register your request.\n\nWhat's your name?",
+        "fr": "📋 Parfait! Enregistrons votre demande.\n\nComment vous appelez-vous?",
+    },
+    "ask_phone": {
+        "ru": "📱 Укажите ваш номер телефона (или нажмите кнопку ниже):",
+        "es": "📱 Indique su número de teléfono (o pulse el botón):",
+        "en": "📱 Please share your phone number (or press the button below):",
+        "fr": "📱 Indiquez votre numéro de téléphone (ou appuyez sur le bouton):",
+    },
+    "ask_address": {
+        "ru": "📍 Укажите адрес или населённый пункт:",
+        "es": "📍 Indique su dirección o localidad:",
+        "en": "📍 Please provide your address or location:",
+        "fr": "📍 Indiquez votre adresse ou localité:",
+    },
+    "ask_problem": {
+        "ru": "🔐 Опишите проблему (например: закрылся в квартире, не открывается замок, сломался ключ):",
+        "es": "🔐 Describa el problema (por ejemplo: se quedó fuera, la cerradura no abre, se rompió la llave):",
+        "en": "🔐 Describe the problem (e.g.: locked out, lock won't open, key broke inside):",
+        "fr": "🔐 Décrivez le problème (par ex: porte claquée, serrure bloquée, clé cassée):",
+    },
+    "done": {
+        "ru": "✅ Заявка принята! Мастер свяжется с вами в ближайшие несколько минут.\n\nСпасибо, что выбрали CostaClave! 🔐",
+        "es": "✅ ¡Solicitud recibida! El técnico le contactará en pocos minutos.\n\n¡Gracias por elegir CostaClave! 🔐",
+        "en": "✅ Request received! Our locksmith will contact you within minutes.\n\nThank you for choosing CostaClave! 🔐",
+        "fr": "✅ Demande reçue! Notre serrurier vous contactera dans quelques minutes.\n\nMerci d'avoir choisi CostaClave! 🔐",
+    },
+    "cancel": {
+        "ru": "❌ Заявка отменена. Если понадоблюсь — нажмите /start",
+        "es": "❌ Solicitud cancelada. Si necesita ayuda — pulse /start",
+        "en": "❌ Request cancelled. If you need help — press /start",
+        "fr": "❌ Demande annulée. Si vous avez besoin d'aide — appuyez sur /start",
+    },
 }
 
-def get_text(key, lang):
+def get_text(key: str, lang: str) -> str:
     return TEXTS[key].get(lang, TEXTS[key]["es"])
 
-def get_menu(lang):
+def get_menu(lang: str) -> ReplyKeyboardMarkup:
     buttons = [[btn] for btn in TEXTS["menu"][lang]]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
-async def start(update, context):
+# === КОМАНДА /start ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = detect_lang(update)
     context.user_data["lang"] = lang
-    await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
+    await update.message.reply_text(
+        get_text("welcome", lang),
+        reply_markup=get_menu(lang)
+    )
 
-async def handle_menu(update, context):
+# === ОБРАБОТКА МЕНЮ ===
+async def handle_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = context.user_data.get("lang", detect_lang(update))
     text = update.message.text
+
     menu_items = TEXTS["menu"]
 
+    if text in [menu_items[l][0] for l in menu_items]:  # Вызов мастера
+        context.user_data["lang"] = lang
+        await update.message.reply_text(get_text("ask_name", lang))
+        return WAITING_NAME
 
-if text in [menu_items[l][0] for l in menu_items]:
-    context.user_data["lang"] = lang
-    await update.message.reply_text(get_text("ask_name", lang))
-    return WAITING_NAME
-elif text in [menu_items[l][1] for l in menu_items]:
-    await update.message.reply_text(get_text("prices", lang))
-elif text in [menu_items[l][2] for l in menu_items]:
-    await update.message.reply_text(get_text("area", lang))
-elif text in [menu_items[l][3] for l in menu_items]:
-    await update.message.reply_text(get_text("hours", lang))
-elif text in [menu_items[l][4] for l in menu_items]:
-    await update.message.reply_text(get_text("contact", lang))
-else:
-    await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
+    elif text in [menu_items[l][1] for l in menu_items]:  # Цены
+        await update.message.reply_text(get_text("prices", lang), parse_mode="Markdown")
 
-return ConversationHandler.END
+    elif text in [menu_items[l][2] for l in menu_items]:  # Зона работы
+        await update.message.reply_text(get_text("area", lang), parse_mode="Markdown")
 
+    elif text in [menu_items[l][3] for l in menu_items]:  # Время работы
+        await update.message.reply_text(get_text("hours", lang), parse_mode="Markdown")
 
-async def get_name(update, context):
+    elif text in [menu_items[l][4] for l in menu_items]:  # Контакты
+        await update.message.reply_text(get_text("contact", lang), parse_mode="Markdown")
+
+    else:
+        await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
+
+    return ConversationHandler.END
+
+# === ДИАЛОГ: ПРИЁМ ЗАЯВКИ ===
+async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["name"] = update.message.text
     lang = context.user_data.get("lang", "es")
     phone_button = ReplyKeyboardMarkup(
-    [[KeyboardButton("Share phone number", request_contact=True)]],
-    resize_keyboard=True, one_time_keyboard=True
-)
+        [[KeyboardButton("📱 Поделиться номером", request_contact=True)]],
+        resize_keyboard=True, one_time_keyboard=True
+    )
     await update.message.reply_text(get_text("ask_phone", lang), reply_markup=phone_button)
     return WAITING_PHONE
 
-async def get_phone(update, context):
+async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.contact:
         context.user_data["phone"] = update.message.contact.phone_number
-        else:
+    else:
         context.user_data["phone"] = update.message.text
-        lang = context.user_data.get("lang", "es")
-        await update.message.reply_text(get_text("ask_address", lang))
-        return WAITING_ADDRESS
+    lang = context.user_data.get("lang", "es")
+    await update.message.reply_text(get_text("ask_address", lang), reply_markup=ReplyKeyboardMarkup([[]], resize_keyboard=True))
+    return WAITING_ADDRESS
 
-async def get_address(update, context):
-        context.user_data["address"] = update.message.text
-        lang = context.user_data.get("lang", "es")
-        await update.message.reply_text(get_text("ask_problem", lang))
-        return WAITING_PROBLEM
+async def get_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["address"] = update.message.text
+    lang = context.user_data.get("lang", "es")
+    await update.message.reply_text(get_text("ask_problem", lang))
+    return WAITING_PROBLEM
 
-async def get_problem(update, context):
-        context.user_data["problem"] = update.message.text
-        lang = context.user_data.get("lang", "es")
-        user = update.effective_user
+async def get_problem(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["problem"] = update.message.text
+    lang = context.user_data.get("lang", "es")
+    user = update.effective_user
 
+    # Уведомление администратору
+    admin_msg = (
+        f"🆕 *НОВАЯ ЗАЯВКА — CostaClave*\n\n"
+        f"👤 Имя: {context.user_data.get('name', '—')}\n"
+        f"📱 Телефон: {context.user_data.get('phone', '—')}\n"
+        f"📍 Адрес: {context.user_data.get('address', '—')}\n"
+        f"🔐 Проблема: {context.user_data.get('problem', '—')}\n"
+        f"🌐 Язык клиента: {lang.upper()}\n"
+        f"💬 Telegram: @{user.username or '—'} (ID: {user.id})"
+    )
 
-admin_msg = (
-    "NOVAYA ZAYAVKA - CostaClave\n\n"
-    "Imya: " + str(context.user_data.get("name", "-")) + "\n"
-    "Telefon: " + str(context.user_data.get("phone", "-")) + "\n"
-    "Adres: " + str(context.user_data.get("address", "-")) + "\n"
-    "Problema: " + str(context.user_data.get("problem", "-")) + "\n"
-    "Yazyk: " + lang.upper() + "\n"
-    "Telegram ID: " + str(user.id)
-)
+    try:
+        await context.bot.send_message(
+            chat_id=ADMIN_CHAT_ID,
+            text=admin_msg,
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        logger.error(f"Не удалось отправить уведомление: {e}")
 
-try:
-    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_msg)
-except Exception as e:
-    logger.error("Ne udalos otpravit uvedomlenie: " + str(e))
+    await update.message.reply_text(get_text("done", lang), reply_markup=get_menu(lang))
+    return ConversationHandler.END
 
-await update.message.reply_text(get_text("done", lang), reply_markup=get_menu(lang))
-return ConversationHandler.END
-```
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = context.user_data.get("lang", "es")
+    await update.message.reply_text(get_text("cancel", lang), reply_markup=get_menu(lang))
+    return ConversationHandler.END
 
-async def cancel(update, context):
-lang = context.user_data.get("lang", "es")
-await update.message.reply_text(get_text("cancel", lang), reply_markup=get_menu(lang))
-return ConversationHandler.END
-
+# === ЗАПУСК ===
 def main():
-app = Application.builder().token(BOT_TOKEN).build()
+    app = Application.builder().token(BOT_TOKEN).build()
 
-```
-conv_handler = ConversationHandler(
-    entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu)],
-    states={
-        WAITING_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
-        WAITING_PHONE: [
-            MessageHandler(filters.CONTACT, get_phone),
-            MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone),
-        ],
-        WAITING_ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_address)],
-        WAITING_PROBLEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_problem)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-)
+    conv_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu)],
+        states={
+            WAITING_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
+            WAITING_PHONE: [
+                MessageHandler(filters.CONTACT, get_phone),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone),
+            ],
+            WAITING_ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_address)],
+            WAITING_PROBLEM: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_problem)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(conv_handler)
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(conv_handler)
 
-logger.info("CostaClave bot zapushchen!")
-app.run_polling()
-```
+    logger.info("CostaClave bot запущен!")
+    app.run_polling()
 
-if **name** == "**main**":
-main()
+if __name__ == "__main__":
+    main()
