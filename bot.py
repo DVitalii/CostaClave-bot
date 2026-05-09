@@ -113,9 +113,9 @@ async def start(update, context):
     await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
 
 async def handle_menu(update, context):
-lang = context.user_data.get("lang", detect_lang(update))
-text = update.message.text
-menu_items = TEXTS["menu"]
+    lang = context.user_data.get("lang", detect_lang(update))
+    text = update.message.text
+    menu_items = TEXTS["menu"]
 
 
 if text in [menu_items[l][0] for l in menu_items]:
@@ -134,39 +134,39 @@ else:
     await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
 
 return ConversationHandler.END
-```
+
 
 async def get_name(update, context):
-context.user_data["name"] = update.message.text
-lang = context.user_data.get("lang", "es")
-phone_button = ReplyKeyboardMarkup(
-[[KeyboardButton("Share phone number", request_contact=True)]],
-resize_keyboard=True, one_time_keyboard=True
+    context.user_data["name"] = update.message.text
+    lang = context.user_data.get("lang", "es")
+    phone_button = ReplyKeyboardMarkup(
+    [[KeyboardButton("Share phone number", request_contact=True)]],
+    resize_keyboard=True, one_time_keyboard=True
 )
-await update.message.reply_text(get_text("ask_phone", lang), reply_markup=phone_button)
-return WAITING_PHONE
+    await update.message.reply_text(get_text("ask_phone", lang), reply_markup=phone_button)
+    return WAITING_PHONE
 
 async def get_phone(update, context):
-if update.message.contact:
-context.user_data["phone"] = update.message.contact.phone_number
+    if update.message.contact:
+    context.user_data["phone"] = update.message.contact.phone_number
 else:
-context.user_data["phone"] = update.message.text
-lang = context.user_data.get("lang", "es")
-await update.message.reply_text(get_text("ask_address", lang))
-return WAITING_ADDRESS
+    context.user_data["phone"] = update.message.text
+    lang = context.user_data.get("lang", "es")
+    await update.message.reply_text(get_text("ask_address", lang))
+    return WAITING_ADDRESS
 
 async def get_address(update, context):
-context.user_data["address"] = update.message.text
-lang = context.user_data.get("lang", "es")
-await update.message.reply_text(get_text("ask_problem", lang))
-return WAITING_PROBLEM
+    context.user_data["address"] = update.message.text
+    lang = context.user_data.get("lang", "es")
+    await update.message.reply_text(get_text("ask_problem", lang))
+    return WAITING_PROBLEM
 
 async def get_problem(update, context):
-context.user_data["problem"] = update.message.text
-lang = context.user_data.get("lang", "es")
-user = update.effective_user
+    context.user_data["problem"] = update.message.text
+    lang = context.user_data.get("lang", "es")
+    user = update.effective_user
 
-```
+
 admin_msg = (
     "NOVAYA ZAYAVKA - CostaClave\n\n"
     "Imya: " + str(context.user_data.get("name", "-")) + "\n"
