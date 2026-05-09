@@ -45,28 +45,28 @@ TEXTS = {
 "fr": "Nos tarifs:\n\nOuverture de serrure - a partir de 60 euros\nOuverture de voiture - a partir de 80 euros\nRemplacement - a partir de 90 euros\nAppel nocturne - +20 euros",
 },
 "area": {
-“ru”: “Zona obsluzhivaniya:\n\nDeniya, Khavea, Morayra, Benissa, Kalpe, Altea, Benidorm, Gandiya\n\nVes rayon Kosta-Blanka Norte.”,
-“es”: “Zona de trabajo:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nToda la Costa Blanca Norte.”,
-“en”: “Service area:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nAll Costa Blanca Norte.”,
-“fr”: “Zone intervention:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nToute la Costa Blanca Norte.”,
+"ru": "Zona obsluzhivaniya:\n\nDeniya, Khavea, Morayra, Benissa, Kalpe, Altea, Benidorm, Gandiya\n\nVes rayon Kosta-Blanka Norte.",
+"es": "Zona de trabajo:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nToda la Costa Blanca Norte.",
+"en": "Service area:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nAll Costa Blanca Norte.",
+"fr": "Zone intervention:\n\nDenia, Javea, Moraira, Benissa, Calpe, Altea, Benidorm, Gandia\n\nToute la Costa Blanca Norte.",
 },
-“hours”: {
-“ru”: “Vremya raboty:\n\n24 chasa v sutki\n7 dney v nedelyu\n365 dney v godu\n\nDazhe v prazdniki i nochyu!”,
-“es”: “Horario:\n\n24 horas al dia\n7 dias a la semana\n365 dias al ano\n\nIncluso en festivos y de noche!”,
-“en”: “Working hours:\n\n24 hours a day\n7 days a week\n365 days a year\n\nEven on holidays and at night!”,
-“fr”: “Horaires:\n\n24h/24\n7j/7\n365 jours par an\n\nMeme les jours feries et la nuit!”,
+"hours": {
+"ru": "Vremya raboty:\n\n24 chasa v sutki\n7 dney v nedelyu\n365 dney v godu\n\nDazhe v prazdniki i nochyu!",
+"es": "Horario:\n\n24 horas al dia\n7 dias a la semana\n365 dias al ano\n\nIncluso en festivos y de noche!",
+"en": "Working hours:\n\n24 hours a day\n7 days a week\n365 days a year\n\nEven on holidays and at night!",
+"fr": "Horaires:\n\n24h/24\n7j/7\n365 jours par an\n\nMeme les jours feries et la nuit!",
 },
-“contact”: {
-“ru”: “Kontakty CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net”,
-“es”: “Contacto CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net”,
-“en”: “CostaClave contacts:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net”,
-“fr”: “Contact CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net”,
+"contact": {
+"ru": "Kontakty CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
+"es": "Contacto CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
+"en": "CostaClave contacts:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
+"fr": "Contact CostaClave:\n\nWhatsApp/Telegram: +34 XXX XXX XXX\ncostaclave.net\ninfo@costaclave.net",
 },
-“ask_name”: {
-“ru”: “Davajte oformim zayavku. Kak vas zovut?”,
-“es”: “Vamos a registrar su solicitud. Como se llama?”,
-“en”: “Let us register your request. What is your name?”,
-“fr”: “Enregistrons votre demande. Comment vous appelez-vous?”,
+"ask_name": {
+"ru": "Davajte oformim zayavku. Kak vas zovut?",
+"es": "Vamos a registrar su solicitud. Como se llama?",
+"en": "Let us register your request. What is your name?",
+"fr": "Enregistrons votre demande. Comment vous appelez-vous?",
 },
 "ask_phone": {
 "ru": "Ukazhite vash nomer telefona:",
