@@ -101,23 +101,23 @@ TEXTS = {
 }
 
 def get_text(key, lang):
-return TEXTS[key].get(lang, TEXTS[key]["es"])
+    return TEXTS[key].get(lang, TEXTS[key]["es"])
 
 def get_menu(lang):
-buttons = [[btn] for btn in TEXTS["menu"][lang]]
-return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+    buttons = [[btn] for btn in TEXTS["menu"][lang]]
+    return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
 async def start(update, context):
-lang = detect_lang(update)
-context.user_data["lang"] = lang
-await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
+    lang = detect_lang(update)
+    context.user_data["lang"] = lang
+    await update.message.reply_text(get_text("welcome", lang), reply_markup=get_menu(lang))
 
 async def handle_menu(update, context):
 lang = context.user_data.get("lang", detect_lang(update))
 text = update.message.text
 menu_items = TEXTS["menu"]
 
-```
+
 if text in [menu_items[l][0] for l in menu_items]:
     context.user_data["lang"] = lang
     await update.message.reply_text(get_text("ask_name", lang))
