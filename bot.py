@@ -163,7 +163,7 @@ return WAITING_PROBLEM
 
 async def get_problem(update, context):
 context.user_data["problem"] = update.message.text
-lang = context.user_data.get("lang", “es”)
+lang = context.user_data.get("lang", "es")
 user = update.effective_user
 
 ```
