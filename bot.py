@@ -150,21 +150,21 @@ async def get_phone(update, context):
     if update.message.contact:
         context.user_data["phone"] = update.message.contact.phone_number
         else:
-            context.user_data["phone"] = update.message.text
-            lang = context.user_data.get("lang", "es")
-            await update.message.reply_text(get_text("ask_address", lang))
-            return WAITING_ADDRESS
+        context.user_data["phone"] = update.message.text
+        lang = context.user_data.get("lang", "es")
+        await update.message.reply_text(get_text("ask_address", lang))
+        return WAITING_ADDRESS
 
 async def get_address(update, context):
-    context.user_data["address"] = update.message.text
-    lang = context.user_data.get("lang", "es")
-    await update.message.reply_text(get_text("ask_problem", lang))
-    return WAITING_PROBLEM
+        context.user_data["address"] = update.message.text
+        lang = context.user_data.get("lang", "es")
+        await update.message.reply_text(get_text("ask_problem", lang))
+        return WAITING_PROBLEM
 
 async def get_problem(update, context):
-    context.user_data["problem"] = update.message.text
-    lang = context.user_data.get("lang", "es")
-    user = update.effective_user
+        context.user_data["problem"] = update.message.text
+        lang = context.user_data.get("lang", "es")
+        user = update.effective_user
 
 
 admin_msg = (
