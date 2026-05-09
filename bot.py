@@ -148,7 +148,7 @@ async def get_name(update, context):
 
 async def get_phone(update, context):
     if update.message.contact:
-    context.user_data["phone"] = update.message.contact.phone_number
+        context.user_data["phone"] = update.message.contact.phone_number
 else:
     context.user_data["phone"] = update.message.text
     lang = context.user_data.get("lang", "es")
